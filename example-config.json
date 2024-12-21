@@ -1,0 +1,17 @@
+{
+  "log": {
+    "level": "info",
+    "dir": null,
+    "stdout": true,
+    "fileskept": null
+  },
+  "sql": {
+    "location": "sqlite.db"
+  },
+  "web": {
+    "listen": "127.0.0.1:8080",
+    "https": false,
+    "key_file": "key.crt",
+    "privkey_file": "privkey.key"
+  }
+}
