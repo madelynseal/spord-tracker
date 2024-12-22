@@ -6,9 +6,9 @@ use actix_web::{cookie::Key, post, web, App, HttpResponse, HttpServer, Responder
 use std::fs::File;
 use std::io::BufReader;
 
+mod api;
 mod files;
 mod html;
-mod user;
 
 pub async fn start() -> std::io::Result<()> {
     let secret_key = Key::generate();
@@ -24,7 +24,7 @@ pub async fn start() -> std::io::Result<()> {
             .service(html::index)
             .service(html::login)
             .service(html::js_file)
-            .service(user::api_user_login)
+            .service(api::api_user_login)
     });
 
     let listen_address = &CONFIG.web.listen;

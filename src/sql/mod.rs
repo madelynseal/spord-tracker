@@ -68,13 +68,13 @@ async fn initialize(client_opt: Option<Client>) -> Result<()> {
             conn.execute(
                 "CREATE TABLE spords (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    customer_name TEXT NOT NULL,
-                    customer_phone TEXT,
-                    customer_email TEXT,
+                    name TEXT NOT NULL,
+                    phone TEXT,
+                    email TEXT,
                     part TEXT,
                     state INTEGER NOT NULL,
-                    creation_date INTEGER NOT NULL,
-                    received_date INTEGER,
+                    created INTEGER NOT NULL,
+                    received INTEGER,
                     comments TEXT
                 )",
                 (),
@@ -157,13 +157,25 @@ pub async fn user_create_console(
 pub async fn spord_create(client_opt: Option<Client>, spord: SpordRecord) -> Result<()> {
     let client = open_if_needed(client_opt).await?;
 
-    client.conn(move |conn| {
-
-        conn.execute("INSERT INTO spords 
-        (customer_name, customer_phone, customer_email, part, state, creation_date, received_date, comments)
-        VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)", (&spord.customer_name, &spord.customer_phone, &spord.customer_email
-        , &spord.part, spord.state.as_sql(), spord.creation_date.timestamp(), spord.received_date_unix(), &spord.comments))
-    }).await?;
+    client
+        .conn(move |conn| {
+            conn.execute(
+                "INSERT INTO spords 
+        (name, phone, email, part, state, created, received, comments)
+        VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                (
+                    &spord.customer_name,
+                    &spord.customer_phone,
+                    &spord.customer_email,
+                    &spord.part,
+                    spord.state.as_sql(),
+                    spord.creation_date.timestamp(),
+                    spord.received_date_unix(),
+                    &spord.comments,
+                ),
+            )
+        })
+        .await?;
 
     Ok(())
 }
@@ -173,7 +185,7 @@ pub async fn spord_update(client_opt: Option<Client>, spord: SpordRecord) -> Res
 
     client.conn(move |conn| {
 
-        conn.execute("UPDATE spords SET customer_name=?1, customer_phone=?2, customer_email=?3, part=?4, state=?5, creation_date=?6, received_date=?7, comments=?8 WHERE id=?9;", 
+        conn.execute("UPDATE spords SET name=?1, phone=?2, email=?3, part=?4, state=?5, created=?6, received=?7, comments=?8 WHERE id=?9;", 
         (&spord.customer_name, &spord.customer_phone, &spord.customer_email
             , &spord.part, spord.state.as_sql(), spord.creation_date.timestamp(), spord.received_date_unix(), &spord.comments, spord.id))
     }).await?;
