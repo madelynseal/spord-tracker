@@ -58,6 +58,16 @@ pub fn get_config_location() -> PathBuf {
     Path::new(crate::constants::CONFIG_LOCATION).to_path_buf()
 }
 
+// Checks if the config exists, and returns false if it didn't
+pub fn check_config_exists() -> Result<bool> {
+    if !std::fs::exists(CONFIG_LOCATION)? {
+        write_default_config(CONFIG_LOCATION)?;
+        Ok(false)
+    } else {
+        Ok(true)
+    }
+}
+
 pub fn write_default_config(path: &str) -> Result<()> {
     let config = Config {
         log: LogConfig {
@@ -67,7 +77,7 @@ pub fn write_default_config(path: &str) -> Result<()> {
             fileskept: None,
         },
         sql: SqlConfig {
-            location: "sqlite.db".to_string(),
+            location: "spord-tracker.db".to_string(),
         },
         web: WebConfig {
             listen: "127.0.0.1:8080".to_string(),

@@ -1,1 +1,1 @@
-pub const CONFIG_LOCATION: &str = "config.toml";
+pub const CONFIG_LOCATION: &str = "config.json";

@@ -21,6 +21,10 @@ pub async fn start() -> std::io::Result<()> {
                 CookieSessionStore::default(),
                 secret_key.clone(),
             ))
+            .service(html::index)
+            .service(html::login)
+            .service(html::js_file)
+            .service(user::api_user_login)
     });
 
     let listen_address = &CONFIG.web.listen;
@@ -34,4 +38,16 @@ pub async fn start() -> std::io::Result<()> {
     }
 
     Ok(())
+}
+
+fn user_logged_in(user: Option<Identity>) -> Option<String> {
+    debug!("user_logged_in: {}", user.is_some());
+    if let Some(user) = user {
+        user.id()
+            .unwrap()
+            .strip_prefix("user:")
+            .map(|username| username.to_string())
+    } else {
+        None
+    }
 }

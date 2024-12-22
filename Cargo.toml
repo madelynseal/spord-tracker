@@ -29,3 +29,5 @@ rust-embed="8.5"
 chrono={version="0.4", features=["serde"]}
 
 async-sqlite="0.3"
+
+#windows-service="0.7"

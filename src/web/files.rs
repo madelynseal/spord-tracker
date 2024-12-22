@@ -2,11 +2,11 @@ use actix_web::HttpResponse;
 use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
-#[folder = "src/js"]
+#[folder = "web/js"]
 struct JSFiles;
 
 #[derive(RustEmbed)]
-#[folder = "src/html"]
+#[folder = "web/html"]
 struct HtmlFiles;
 
 pub fn html_file_response(path: &str) -> HttpResponse {
