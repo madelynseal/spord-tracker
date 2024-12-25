@@ -1,25 +1,27 @@
+use super::template;
 use super::user_logged_in;
+use crate::sql;
 use actix_identity::Identity;
+use actix_web::HttpMessage;
+use actix_web::HttpRequest;
 use actix_web::{get, web, HttpResponse, Responder};
 use serde::Deserialize;
 
 #[get("/")]
 pub async fn index(id: Option<Identity>) -> impl Responder {
     if let Some(_username) = user_logged_in(id) {
-        super::files::html_file_response("index.html")
+        let html = template::template_index();
+
+        HttpResponse::Ok().body(html)
     } else {
         HttpResponse::Found()
-            .insert_header(("location", "/login?redirect=/"))
+            .insert_header(("location", "/login"))
             .finish()
     }
 }
 
 #[get("/js/{path}")]
 pub async fn js_file(path: web::Path<String>, id: Option<Identity>) -> HttpResponse {
-    let path = path.into_inner();
-    if path == String::from("login.js") {
-        return super::files::js_file_response(&path);
-    }
     if let Some(_username) = user_logged_in(id) {
         super::files::js_file_response(&path)
     } else {
@@ -27,26 +29,51 @@ pub async fn js_file(path: web::Path<String>, id: Option<Identity>) -> HttpRespo
     }
 }
 
-#[derive(Debug, Deserialize)]
-pub struct LoginHtml {
-    pub redirect: Option<String>,
-}
 #[get("/login")]
-pub async fn login(id: Option<Identity>, params: web::Query<LoginHtml>) -> impl Responder {
+pub async fn login(id: Option<Identity>) -> impl Responder {
     if let Some(_username) = user_logged_in(id) {
-        let redirect = if let Some(redirect) = &params.redirect {
-            if redirect.starts_with("/") {
-                redirect
-            } else {
-                "/"
-            }
-        } else {
-            "/"
-        };
-        HttpResponse::Ok()
-            .insert_header(("location", redirect))
-            .finish()
+        HttpResponse::Ok().insert_header(("location", "/")).finish()
     } else {
-        super::files::html_file_response("login.html")
+        HttpResponse::Ok().body(template::template_login())
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LoginPostData {
+    pub username: String,
+    pub password: String,
+}
+#[post("/login_post")]
+pub async fn login_post(
+    request: HttpRequest,
+    id: Option<Identity>,
+    params: web::Form<LoginPostData>,
+) -> actix_web::Result<HttpResponse> {
+    if let Some(_username) = user_logged_in(id) {
+        Ok(HttpResponse::Ok().insert_header(("location", "/")).finish())
+    } else {
+        if sql::user_login(None, &params.username, &params.password)
+            .await
+            .unwrap()
+        {
+            Identity::login(&request.extensions(), format!("user:{}", &params.username))?;
+
+            Ok(HttpResponse::Found()
+                .insert_header(("location", "/"))
+                .finish())
+        } else {
+            Ok(HttpResponse::Found()
+                .insert_header(("location", "/login"))
+                .finish())
+        }
+    }
+}
+
+#[get("/logout")]
+pub async fn logout(id: Identity) -> impl Responder {
+    id.logout();
+
+    HttpResponse::Found()
+        .insert_header(("location", "/login"))
+        .finish()
 }
